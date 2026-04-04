@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — CipherVault{% endblock %}
+
+{% block content %}
+<section class="page-section" id="dashboard-section">
+    <div class="container">
+        <div class="dashboard-welcome" id="dashboard-welcome">
+            <div class="welcome-content">
+                <h1 class="page-title">Welcome back<span class="welcome-email">, {{ user_email }}</span></h1>
+                <p class="page-subtitle">What would you like to do today?</p>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboard-grid">
+            <!-- Encrypt Card -->
+            <a href="{% url 'crypto_tools:encrypt' %}" class="dashboard-card dashboard-card-encrypt" id="dashboard-encrypt-card">
+                <div class="dashboard-card-icon">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <path d="M24 6L8 14V24c0 10 6.856 19.36 16 22 9.144-2.64 16-12 16-22V14L24 6z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 24l5.333 5.333L28 18.667" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 class="dashboard-card-title">Encrypt Image</h2>
+                <p class="dashboard-card-desc">Upload an image and encrypt it with AES-256 visual encryption or Fernet full-file protection.</p>
+                <div class="dashboard-card-action">
+                    <span>Start Encrypting</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4.167 10h11.666m0 0L10 4.167M15.833 10L10 15.833" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </a>
+
+            <!-- Decrypt Card -->
+            <a href="{% url 'crypto_tools:decrypt' %}" class="dashboard-card dashboard-card-decrypt" id="dashboard-decrypt-card">
+                <div class="dashboard-card-icon">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <rect x="8" y="22" width="32" height="22" rx="4" stroke="currentColor" stroke-width="2.5"/>
+                        <path d="M14 22v-8a10 10 0 0120 0" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                        <circle cx="24" cy="33" r="3" fill="currentColor"/>
+                        <path d="M24 36v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h2 class="dashboard-card-title">Decrypt File</h2>
+                <p class="dashboard-card-desc">Upload an encrypted image or file and provide your decryption key to restore the original.</p>
+                <div class="dashboard-card-action">
+                    <span>Start Decrypting</span>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4.167 10h11.666m0 0L10 4.167M15.833 10L10 15.833" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </a>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-grid" id="info-grid">
+            <div class="info-card" id="info-security">
+                <div class="info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h3 class="info-title">End-to-End Secure</h3>
+                <p class="info-desc">Your files are processed securely and keys never leave your browser.</p>
+            </div>
+            <div class="info-card" id="info-formats">
+                <div class="info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h3 class="info-title">Multiple Formats</h3>
+                <p class="info-desc">Supports PNG, JPG, JPEG, and BMP image formats for encryption.</p>
+            </div>
+            <div class="info-card" id="info-instant">
+                <div class="info-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <h3 class="info-title">Lightning Fast</h3>
+                <p class="info-desc">Encryption and decryption happen in seconds, not minutes.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

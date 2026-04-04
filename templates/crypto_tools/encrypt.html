@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Encrypt Image — CipherVault{% endblock %}
+
+{% block content %}
+<section class="page-section" id="encrypt-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Encrypt Image</h1>
+            <p class="page-subtitle">Upload an image and choose your encryption mode</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="tool-form" id="encrypt-form">
+            {% csrf_token %}
+
+            <div class="tool-grid">
+                <!-- Left Column: Upload & Options -->
+                <div class="tool-column">
+                    <!-- Upload Area -->
+                    <div class="tool-card" id="encrypt-upload-card">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 12.5v3.333A1.667 1.667 0 0115.833 17.5H4.167A1.667 1.667 0 012.5 15.833V12.5M14.167 6.667L10 2.5m0 0L5.833 6.667M10 2.5v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Upload Image
+                        </h3>
+                        <div class="dropzone" id="encrypt-dropzone" data-input="encrypt-file-input">
+                            <div class="dropzone-content">
+                                <div class="dropzone-icon">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M42 30v6a4 4 0 01-4 4H10a4 4 0 01-4-4v-6M34 16L24 6m0 0L14 16M24 6v24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </div>
+                                <p class="dropzone-text">Drag & drop your image here</p>
+                                <p class="dropzone-hint">or click to browse</p>
+                                <p class="dropzone-formats">PNG, JPG, BMP — Max 10MB</p>
+                            </div>
+                            <div class="dropzone-preview" id="encrypt-preview" style="display:none;">
+                                <img id="encrypt-preview-img" src="" alt="Preview">
+                                <button type="button" class="dropzone-clear" id="encrypt-clear" aria-label="Clear selection">&times;</button>
+                                <p class="dropzone-filename" id="encrypt-filename"></p>
+                            </div>
+                            {{ form.image }}
+                        </div>
+                    </div>
+
+                    <!-- Mode Selection -->
+                    <div class="tool-card" id="encrypt-mode-card">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 1.667L1.667 6.667l8.333 5 8.333-5L10 1.667zM1.667 13.333l8.333 5 8.333-5M1.667 10l8.333 5 8.333-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Encryption Mode
+                        </h3>
+                        <div class="mode-selector" id="mode-selector">
+                            <label class="mode-option mode-option-active" id="mode-default-label" for="id_mode_0">
+                                <input type="radio" name="mode" value="default" id="id_mode_0" checked>
+                                <div class="mode-card-inner">
+                                    <div class="mode-icon mode-icon-blue">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="12" r="1.5" fill="currentColor"/><circle cx="10" cy="18" r="1.5" fill="currentColor"/></svg>
+                                    </div>
+                                    <div class="mode-info">
+                                        <span class="mode-name">Default Encryption</span>
+                                        <span class="mode-desc">AES-256 pixel encryption → visual noise PNG</span>
+                                    </div>
+                                    <div class="mode-check">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="mode-option" id="mode-full-label" for="id_mode_1">
+                                <input type="radio" name="mode" value="full" id="id_mode_1">
+                                <div class="mode-card-inner">
+                                    <div class="mode-icon mode-icon-purple">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 6.5V12c0 5.55 3.4 10.74 8 12.85 4.6-2.11 8-7.3 8-12.85V6.5L12 2z" stroke="currentColor" stroke-width="1.5"/><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </div>
+                                    <div class="mode-info">
+                                        <span class="mode-name">Full Protection</span>
+                                        <span class="mode-desc">Fernet authenticated encryption → .enc binary</span>
+                                    </div>
+                                    <div class="mode-check">
+                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7 10l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="encrypt-submit">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3.333L3.333 7.5V12.5c0 4.167 2.847 8.047 6.667 9.167 3.82-1.12 6.667-5 6.667-9.167V7.5L10 3.333z" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span class="btn-text">Encrypt Now</span>
+                        <span class="btn-loader" style="display:none;"></span>
+                    </button>
+                </div>
+
+                <!-- Right Column: Results -->
+                <div class="tool-column">
+                    {% if result %}
+                    <!-- Encrypted Result -->
+                    <div class="result-card result-success" id="encrypt-result">
+                        <div class="result-header">
+                            <h3 class="card-title">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                Encryption Complete
+                            </h3>
+                            <span class="status-pill status-active">{{ result.mode|title }}</span>
+                        </div>
+
+                        {% if result.mode == "default" %}
+                        <!-- Encrypted Image Preview (Default mode) -->
+                        <div class="result-preview" id="result-preview">
+                            <p class="result-label">Encrypted Image Preview</p>
+                            <img src="{{ result.encrypted_url }}" alt="Encrypted image (visual noise)" class="result-image" id="result-encrypted-img">
+                        </div>
+                        {% else %}
+                        <!-- Encrypted File Info (Full mode) -->
+                        <div class="result-file-info" id="result-file-info">
+                            <div class="file-icon-large">
+                                <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M28 4H12a4 4 0 00-4 4v32a4 4 0 004 4h24a4 4 0 004-4V16L28 4z" stroke="currentColor" stroke-width="2"/><path d="M28 4v12h12" stroke="currentColor" stroke-width="2"/><path d="M20 26h8M20 32h8M20 38h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            </div>
+                            <p class="file-info-text">Encrypted binary file (.enc)</p>
+                            <p class="file-info-sub">This file cannot be viewed as an image</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Key Display -->
+                        <div class="key-section" id="key-section">
+                            <div class="key-header">
+                                <p class="key-label">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 5.333a2.667 2.667 0 11-5.333 0A2.667 2.667 0 0110 5.333z" stroke="currentColor" stroke-width="1.5"/><path d="M7.333 8l-4 4m0 0l1.334.667M3.333 12l.667 1.333" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    Your Decryption Key
+                                </p>
+                            </div>
+                            <div class="key-warning">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.86 2.573l-5.657 9.834A1.333 1.333 0 002.343 14.667h11.314a1.333 1.333 0 001.14-2.26L9.14 2.573a1.333 1.333 0 00-2.28 0zM8 6v2.667M8 11.333h.007" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                <span>Save this key! Without it, your file cannot be recovered.</span>
+                            </div>
+                            <div class="key-display" id="key-display">
+                                <code class="key-text" id="key-text">{{ result.key_string }}</code>
+                            </div>
+                            <div class="key-actions">
+                                <button type="button" class="btn btn-outline btn-sm" id="copy-key-btn" onclick="copyKey()">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5.333" y="5.333" width="9.333" height="9.333" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.333 10.667H2.667A1.333 1.333 0 011.333 9.333V2.667A1.333 1.333 0 012.667 1.333h6.666A1.333 1.333 0 0110.667 2.667v.666" stroke="currentColor" stroke-width="1.5"/></svg>
+                                    Copy Key
+                                </button>
+                                <button type="button" class="btn btn-outline btn-sm" id="download-key-btn" onclick="downloadKey()">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 10v2.667A1.333 1.333 0 0112.667 14H3.333A1.333 1.333 0 012 12.667V10M11.333 6.667L8 10m0 0L4.667 6.667M8 10V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    Download Key
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Download Encrypted File -->
+                        <a href="{% url 'crypto_tools:download' %}?path={{ result.download_path|urlencode }}&name={{ result.download_name|urlencode }}" class="btn btn-primary btn-full" id="download-encrypted-btn">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 12.5v3.333A1.667 1.667 0 0115.833 17.5H4.167A1.667 1.667 0 012.5 15.833V12.5M14.167 8.333L10 12.5m0 0L5.833 8.333M10 12.5V2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Download Encrypted {{ result.mode|title }} File
+                        </a>
+                    </div>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="result-card result-empty" id="encrypt-empty-state">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><path d="M32 8L10 20v16c0 13.6 9.36 26.28 22 29.36C44.64 62.28 54 49.6 54 36V20L32 8z" stroke="currentColor" stroke-width="2" opacity="0.3"/><path d="M24 32l5.333 5.333L40 26.667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/></svg>
+                            </div>
+                            <h3 class="empty-title">Ready to Encrypt</h3>
+                            <p class="empty-desc">Upload an image and choose your encryption mode to get started.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyKey() {
+    const keyText = document.getElementById('key-text').textContent;
+    navigator.clipboard.writeText(keyText).then(() => {
+        const btn = document.getElementById('copy-key-btn');
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.333 4L6 11.333 2.667 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!';
+        btn.classList.add('btn-success-outline');
+        setTimeout(() => {
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5.333" y="5.333" width="9.333" height="9.333" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3.333 10.667H2.667A1.333 1.333 0 011.333 9.333V2.667A1.333 1.333 0 012.667 1.333h6.666A1.333 1.333 0 0110.667 2.667v.666" stroke="currentColor" stroke-width="1.5"/></svg> Copy Key';
+            btn.classList.remove('btn-success-outline');
+        }, 2000);
+    });
+}
+
+function downloadKey() {
+    const keyText = document.getElementById('key-text').textContent;
+    const blob = new Blob([keyText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ciphervault-decryption-key.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endblock %}

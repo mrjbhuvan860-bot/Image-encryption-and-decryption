@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Account — CipherVault{% endblock %}
+
+{% block content %}
+<section class="page-section" id="profile-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">Account</h1>
+            <p class="page-subtitle">Manage your CipherVault account</p>
+        </div>
+        <div class="profile-grid">
+            <div class="profile-card" id="profile-info-card">
+                <div class="profile-avatar" id="profile-avatar">
+                    <span class="avatar-letter">{{ user_email.0|upper }}</span>
+                </div>
+                <div class="profile-details">
+                    <div class="profile-field">
+                        <span class="profile-label">Email</span>
+                        <span class="profile-value" id="profile-email">{{ user_email }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Account ID</span>
+                        <span class="profile-value profile-value-mono" id="profile-id">{{ user_id|truncatechars:20 }}</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Auth Provider</span>
+                        <span class="profile-value">
+                            <span class="status-pill status-active">Supabase</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-actions-card" id="profile-actions-card">
+                <h3 class="card-title">Quick Actions</h3>
+                <div class="action-links">
+                    <a href="{% url 'crypto_tools:encrypt' %}" class="action-link" id="profile-to-encrypt">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 3.333L3.333 7.5V12.5c0 4.167 2.847 8.047 6.667 9.167 3.82-1.12 6.667-5 6.667-9.167V7.5L10 3.333z" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Encrypt Image</span>
+                    </a>
+                    <a href="{% url 'crypto_tools:decrypt' %}" class="action-link" id="profile-to-decrypt">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="3.333" y="9.167" width="13.333" height="9.167" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5.833 9.167V5.833a4.167 4.167 0 018.334 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        <span>Decrypt File</span>
+                    </a>
+                    <a href="{% url 'core:dashboard' %}" class="action-link" id="profile-to-dashboard">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2.5" y="2.5" width="6.667" height="6.667" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2.5" y="10.833" width="6.667" height="6.667" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10.833" y="2.5" width="6.667" height="6.667" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="10.833" y="10.833" width="6.667" height="6.667" rx="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="action-divider"></div>
+                <a href="{% url 'accounts:logout' %}" class="btn btn-danger btn-full" id="profile-logout">
+                    Log Out
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CipherVault — Secure image encryption and decryption with military-grade AES protection">
+    <title>{% block title %}CipherVault{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="main-navbar">
+        <div class="nav-container">
+            <a href="{% url 'core:landing' %}" class="nav-logo" id="nav-logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L4 7V12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12V7L12 2Z" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 11V14M12 8H12.01" stroke="url(#logo-grad)" stroke-width="2" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="4" y1="2" x2="20" y2="20"><stop stop-color="#6c63ff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">CipherVault</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                {% if request.session.supabase_user %}
+                    <a href="{% url 'core:dashboard' %}" class="nav-link" id="nav-dashboard">Dashboard</a>
+                    <a href="{% url 'crypto_tools:encrypt' %}" class="nav-link" id="nav-encrypt">Encrypt</a>
+                    <a href="{% url 'crypto_tools:decrypt' %}" class="nav-link" id="nav-decrypt">Decrypt</a>
+                    <a href="{% url 'accounts:profile' %}" class="nav-link" id="nav-profile">Account</a>
+                    <a href="{% url 'accounts:logout' %}" class="nav-btn nav-btn-outline" id="nav-logout">Logout</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="nav-btn nav-btn-outline" id="nav-login">Log In</a>
+                    <a href="{% url 'accounts:signup' %}" class="nav-btn nav-btn-primary" id="nav-signup">Sign Up</a>
+                {% endif %}
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Toast Messages -->
+    {% if messages %}
+    <div class="toast-container" id="toast-container">
+        {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}" id="toast-{{ forloop.counter }}">
+            <div class="toast-icon">
+                {% if message.tags == "success" %}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M16.667 5L7.5 14.167 3.333 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {% elif message.tags == "error" %}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 6.667V10m0 3.333h.008M17.5 10a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {% elif message.tags == "warning" %}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8.575 3.494L1.517 15.833A1.667 1.667 0 003.108 18.333h14.117a1.667 1.667 0 001.592-2.5L11.758 3.494a1.667 1.667 0 00-3.183 0zM10 7.5v3.333m0 3.334h.008" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {% else %}
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 17.5a7.5 7.5 0 100-15 7.5 7.5 0 000 15zM10 6.667V10m0 3.333h.008" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {% endif %}
+            </div>
+            <span class="toast-message">{{ message }}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()" aria-label="Close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="main-footer">
+        <div class="footer-container">
+            <p class="footer-text">&copy; 2026 CipherVault. Built with AES-256 & Fernet encryption.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
