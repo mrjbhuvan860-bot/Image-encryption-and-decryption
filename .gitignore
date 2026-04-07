@@ -1,0 +1,6 @@
+*.env
+SETUP.md
+*.jpg
+*.png
+*.enc
+temp/
