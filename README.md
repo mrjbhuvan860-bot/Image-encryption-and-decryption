@@ -12,7 +12,7 @@
 
 ## Overview
 
-Image Encryption & Decryption is a full-stack Django web application that lets authenticated users encrypt and decrypt image files directly in their browser. It offers two distinct encryption modes: a **Default mode** that rewrites pixel data with AES-256-CBC ciphertext (producing a valid but visually randomised PNG), and a **Full mode** that encrypts the entire file as an opaque binary blob using Fernet (AES-128-CBC + HMAC-SHA256).
+Image Encryption & Decryption is a full-stack Django web application that lets authenticated users encrypt and decrypt image files directly in their browser. It offers two distinct encryption modes: a **Default mode** that rewrites pixel data with AES-256-CBC ciphertext (producing a valid but visually randomized PNG), and a **Full mode** that encrypts the entire file as an opaque binary blob using Fernet (AES-128-CBC + HMAC-SHA256).
 
 Encrypted files are stored in Supabase Storage; the cryptographic keys are **never stored server-side** — they are returned to the user immediately after encryption and consumed (and invalidated) on first use during decryption.
 
