@@ -106,7 +106,7 @@
                         <!-- Encrypted Image Preview (Default mode) -->
                         <div class="result-preview" id="result-preview">
                             <p class="result-label">Encrypted Image Preview</p>
-                            <img src="{{ result.encrypted_url }}" alt="Encrypted image (visual noise)" class="result-image" id="result-encrypted-img">
+                            <img src="{{ result.signed_url }}" alt="Encrypted image (visual noise)" class="result-image" id="result-encrypted-img">
                         </div>
                         {% else %}
                         <!-- Encrypted File Info (Full mode) -->
@@ -129,7 +129,7 @@
                             </div>
                             <div class="key-warning">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.86 2.573l-5.657 9.834A1.333 1.333 0 002.343 14.667h11.314a1.333 1.333 0 001.14-2.26L9.14 2.573a1.333 1.333 0 00-2.28 0zM8 6v2.667M8 11.333h.007" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                                <span>Save this key! Without it, your file cannot be recovered.</span>
+                                <span>Save this key! It is <strong>ONE-TIME USE</strong> — once used for decryption, it cannot be used again.</span>
                             </div>
                             <div class="key-display" id="key-display">
                                 <code class="key-text" id="key-text">{{ result.key_string }}</code>
@@ -146,11 +146,11 @@
                             </div>
                         </div>
 
-                        <!-- Download Encrypted File -->
-                        <a href="{% url 'crypto_tools:download' %}?path={{ result.download_path|urlencode }}&name={{ result.download_name|urlencode }}" class="btn btn-primary btn-full" id="download-encrypted-btn">
+                        <!-- Download Encrypted File (fetch + blob to force download) -->
+                        <button type="button" class="btn btn-primary btn-full" id="download-encrypted-btn" onclick="downloadEncrypted()">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 12.5v3.333A1.667 1.667 0 0115.833 17.5H4.167A1.667 1.667 0 012.5 15.833V12.5M14.167 8.333L10 12.5m0 0L5.833 8.333M10 12.5V2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             Download Encrypted {{ result.mode|title }} File
-                        </a>
+                        </button>
                     </div>
                     {% else %}
                     <!-- Empty State -->
@@ -197,6 +197,36 @@ function downloadKey() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+function downloadEncrypted() {
+    const btn = document.getElementById('download-encrypted-btn');
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="btn-loader"></span> Downloading...';
+    btn.disabled = true;
+
+    const fileUrl = "{{ result.signed_url|escapejs }}";
+    const fileName = "{{ result.download_name|escapejs }}";
+
+    fetch(fileUrl)
+        .then(res => res.blob())
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+        })
+        .catch(() => {
+            btn.innerHTML = originalHTML;
+            btn.disabled = false;
+            alert('Download failed. Please try again.');
+        });
 }
 </script>
 {% endblock %}

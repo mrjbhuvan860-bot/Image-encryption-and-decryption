@@ -2,13 +2,14 @@
 Full file decryption service (Mode B).
 
 Reverses the Fernet encryption from full_encryptor.py.
+Returns decrypted file bytes in memory — nothing is saved to disk.
 
 Decryption flow:
 1. Parse key string → extract Fernet key
 2. Read encrypted .enc file
 3. Fernet decrypt (validates HMAC — detects wrong key or tampering)
 4. Split header to recover original extension
-5. Save restored file with original extension
+5. Return file bytes and metadata
 """
 
 from pathlib import Path
@@ -16,7 +17,6 @@ from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 
 from .key_manager import deserialize_key
-from .file_handler import get_output_dir, get_media_url, generate_secure_filename
 
 
 class FullDecryptionError(Exception):
@@ -28,18 +28,22 @@ def decrypt_file(encrypted_file_path: Path, key_string: str) -> dict:
     """
     Decrypt a Fernet-encrypted .enc file back to the original image.
 
+    Returns the decrypted file as bytes in memory. No files are
+    saved to disk.
+
     Args:
         encrypted_file_path: Path to the .enc file.
         key_string: Base64url key string from encryption.
 
     Returns:
         Dictionary with:
-            - 'decrypted_image_path': Path to restored image file
-            - 'decrypted_image_url': Media URL for the restored image
-            - 'original_extension': Restored file extension
+            - 'image_bytes': Raw bytes of the restored file
+            - 'mime_type': MIME type string
+            - 'extension': Original file extension
+            - 'original_extension': Same as extension (for compatibility)
 
     Raises:
-        FullDecryptionError: If decryption fails (wrong key, tampered data, etc.).
+        FullDecryptionError: If decryption fails.
     """
     try:
         # Step 1: Parse key metadata
@@ -81,7 +85,6 @@ def decrypt_file(encrypted_file_path: Path, key_string: str) -> dict:
             )
 
         # Step 4: Split header to recover original extension
-        # Format: ".png|<file_bytes>"
         separator_index = decrypted_payload.find(b"|")
         if separator_index == -1 or separator_index > 10:
             raise FullDecryptionError(
@@ -95,15 +98,20 @@ def decrypt_file(encrypted_file_path: Path, key_string: str) -> dict:
         if not original_ext.startswith("."):
             original_ext = ".png"  # Fallback
 
-        # Step 5: Save restored file
-        output_dir = get_output_dir()
-        output_filename = generate_secure_filename(original_ext)
-        output_path = output_dir / output_filename
-        output_path.write_bytes(file_bytes)
+        # Step 5: Determine MIME type
+        mime_map = {
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".bmp": "image/bmp",
+        }
+        mime_type = mime_map.get(original_ext, "image/png")
 
+        # Return bytes (no local file saved)
         return {
-            "decrypted_image_path": output_path,
-            "decrypted_image_url": get_media_url(output_path),
+            "image_bytes": file_bytes,
+            "mime_type": mime_type,
+            "extension": original_ext,
             "original_extension": original_ext,
         }
 

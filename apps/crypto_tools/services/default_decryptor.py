@@ -2,6 +2,7 @@
 Default image decryption service (Mode A).
 
 Reverses the AES-256-CBC pixel encryption from default_encryptor.py.
+Returns decrypted image bytes in memory — nothing is saved to disk.
 
 Decryption flow:
 1. Parse key string → extract AES key, IV, dimensions, overflow
@@ -11,8 +12,10 @@ Decryption flow:
 5. AES-CBC decrypt
 6. PKCS7 unpad
 7. Reconstruct original image from decrypted pixel bytes
+8. Return image bytes (PNG format)
 """
 
+import io
 from pathlib import Path
 
 from PIL import Image
@@ -20,7 +23,6 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 
 from .key_manager import deserialize_key
-from .file_handler import get_output_dir, get_media_url, generate_secure_filename
 
 
 class DefaultDecryptionError(Exception):
@@ -32,17 +34,21 @@ def decrypt_image(encrypted_image_path: Path, key_string: str) -> dict:
     """
     Decrypt an AES-256-CBC encrypted image back to the original.
 
+    Returns the decrypted image as bytes in memory. No files are
+    saved to disk.
+
     Args:
         encrypted_image_path: Path to the encrypted PNG file.
         key_string: Base64url key string from encryption.
 
     Returns:
         Dictionary with:
-            - 'decrypted_image_path': Path to restored image
-            - 'decrypted_image_url': Media URL for the restored image
+            - 'image_bytes': Raw PNG bytes of the restored image
+            - 'mime_type': MIME type string ('image/png')
+            - 'extension': File extension ('.png')
 
     Raises:
-        DefaultDecryptionError: If decryption fails (wrong key, corrupted file, etc.).
+        DefaultDecryptionError: If decryption fails.
     """
     try:
         # Step 1: Parse key metadata
@@ -117,18 +123,16 @@ def decrypt_image(encrypted_image_path: Path, key_string: str) -> dict:
                 f"expected ({expected_length}). Data may be corrupted."
             )
 
-        # Step 7: Reconstruct original image
+        # Step 7: Reconstruct original image in memory
         restored_img = Image.frombytes("RGB", (original_width, original_height), original_data)
+        buf = io.BytesIO()
+        restored_img.save(buf, format="PNG")
 
-        # Save restored image
-        output_dir = get_output_dir()
-        output_filename = generate_secure_filename(".png")
-        output_path = output_dir / output_filename
-        restored_img.save(str(output_path), format="PNG")
-
+        # Step 8: Return bytes (no local file saved)
         return {
-            "decrypted_image_path": output_path,
-            "decrypted_image_url": get_media_url(output_path),
+            "image_bytes": buf.getvalue(),
+            "mime_type": "image/png",
+            "extension": ".png",
         }
 
     except DefaultDecryptionError:

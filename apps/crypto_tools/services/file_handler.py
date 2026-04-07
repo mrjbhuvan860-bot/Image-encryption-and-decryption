@@ -1,13 +1,15 @@
 """
-File handling utilities for uploads and outputs.
+File handling utilities for uploads.
 
 Handles:
 - Upload validation (type, size, extension)
 - Secure filename generation (UUID-based)
-- File saving and cleanup
+- Temporary file saving and cleanup
+
+Note: Output files are no longer saved locally — they go to
+Supabase Storage (see supabase_storage.py).
 """
 
-import os
 import uuid
 from pathlib import Path
 
@@ -42,13 +44,6 @@ def validate_image_upload(file: UploadedFile) -> None:
     - File is not empty
     - File size is within limits
     - File extension is allowed
-    - Content type matches expected image types
-
-    Args:
-        file: Django UploadedFile instance.
-
-    Raises:
-        FileValidationError: If validation fails.
     """
     if not file:
         raise FileValidationError("No file was uploaded.")
@@ -73,16 +68,6 @@ def validate_image_upload(file: UploadedFile) -> None:
 def validate_encrypted_upload(file: UploadedFile) -> None:
     """
     Validate an uploaded encrypted file (.enc or image).
-
-    For decryption, the user may upload either:
-    - An encrypted PNG image (default mode)
-    - A .enc binary file (full mode)
-
-    Args:
-        file: Django UploadedFile instance.
-
-    Raises:
-        FileValidationError: If validation fails.
     """
     if not file:
         raise FileValidationError("No file was uploaded.")
@@ -106,53 +91,19 @@ def validate_encrypted_upload(file: UploadedFile) -> None:
 
 
 def generate_secure_filename(extension: str) -> str:
-    """
-    Generate a UUID-based filename with the given extension.
-
-    Args:
-        extension: File extension including dot (e.g., '.png').
-
-    Returns:
-        Secure filename string.
-    """
+    """Generate a UUID-based filename with the given extension."""
     return f"{uuid.uuid4().hex}{extension}"
 
 
 def get_upload_dir() -> Path:
-    """
-    Get (and create if needed) the upload directory.
-
-    Returns:
-        Path to the media/uploads/ directory.
-    """
+    """Get (and create if needed) the temporary upload directory."""
     upload_dir = Path(settings.MEDIA_ROOT) / "uploads"
     upload_dir.mkdir(parents=True, exist_ok=True)
     return upload_dir
 
 
-def get_output_dir() -> Path:
-    """
-    Get (and create if needed) the output directory.
-
-    Returns:
-        Path to the media/outputs/ directory.
-    """
-    output_dir = Path(settings.MEDIA_ROOT) / "outputs"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    return output_dir
-
-
 def save_uploaded_file(file: UploadedFile, directory: Path) -> Path:
-    """
-    Save an uploaded file to disk with a secure UUID filename.
-
-    Args:
-        file: Django UploadedFile.
-        directory: Target directory path.
-
-    Returns:
-        Path to saved file.
-    """
+    """Save an uploaded file to disk with a secure UUID filename."""
     ext = Path(file.name).suffix.lower()
     filename = generate_secure_filename(ext)
     filepath = directory / filename
@@ -164,50 +115,10 @@ def save_uploaded_file(file: UploadedFile, directory: Path) -> Path:
     return filepath
 
 
-def save_bytes_to_file(data: bytes, extension: str, directory: Path) -> Path:
-    """
-    Save raw bytes to a file with a secure UUID filename.
-
-    Args:
-        data: Bytes to write.
-        extension: File extension including dot.
-        directory: Target directory path.
-
-    Returns:
-        Path to saved file.
-    """
-    filename = generate_secure_filename(extension)
-    filepath = directory / filename
-
-    with open(filepath, "wb") as dest:
-        dest.write(data)
-
-    return filepath
-
-
 def cleanup_file(filepath: Path) -> None:
-    """
-    Safely delete a file if it exists.
-
-    Args:
-        filepath: Path to file to delete.
-    """
+    """Safely delete a file if it exists."""
     try:
         if filepath and filepath.exists():
             filepath.unlink()
     except OSError:
         pass  # Best-effort cleanup
-
-
-def get_media_url(filepath: Path) -> str:
-    """
-    Convert an absolute file path to a Django media URL.
-
-    Args:
-        filepath: Absolute path within MEDIA_ROOT.
-
-    Returns:
-        URL string relative to MEDIA_URL.
-    """
-    relative = filepath.relative_to(settings.MEDIA_ROOT)
-    return f"{settings.MEDIA_URL}{relative.as_posix()}"

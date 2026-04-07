@@ -55,7 +55,7 @@
                             {% if form.key.errors %}
                                 <span class="form-error">{{ form.key.errors.0 }}</span>
                             {% endif %}
-                            <p class="form-hint">The mode (default/full) is auto-detected from the key.</p>
+                            <p class="form-hint">The mode (default/full) is auto-detected from the key. Each key is <strong>one-time use</strong>.</p>
                         </div>
                     </div>
 
@@ -80,17 +80,23 @@
                             <span class="status-pill status-active">{{ result.mode|title }}</span>
                         </div>
 
-                        <!-- Decrypted Image Preview -->
-                        <div class="result-preview" id="decrypt-result-preview">
-                            <p class="result-label">Restored Image</p>
-                            <img src="{{ result.decrypted_url }}" alt="Decrypted image" class="result-image" id="result-decrypted-img">
+                        <!-- Key Invalidation Notice -->
+                        <div class="key-warning" style="margin-bottom: 1rem;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.333A6.667 6.667 0 1014.667 8 6.667 6.667 0 008 1.333zM8 5.333V8M8 10.667h.007" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                            <span>The decryption key has been <strong>invalidated</strong> and cannot be used again.</span>
                         </div>
 
-                        <!-- Download Decrypted File -->
-                        <a href="{% url 'crypto_tools:download' %}?path={{ result.download_path|urlencode }}&name={{ result.download_name|urlencode }}" class="btn btn-primary btn-full" id="download-decrypted-btn">
+                        <!-- Decrypted Image Preview (base64 data URL) -->
+                        <div class="result-preview" id="decrypt-result-preview">
+                            <p class="result-label">Restored Image</p>
+                            <img src="data:{{ result.mime_type }};base64,{{ result.image_base64 }}" alt="Decrypted image" class="result-image" id="result-decrypted-img">
+                        </div>
+
+                        <!-- Download Decrypted File (JavaScript blob download) -->
+                        <button type="button" class="btn btn-primary btn-full" id="download-decrypted-btn" onclick="downloadDecrypted()">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M17.5 12.5v3.333A1.667 1.667 0 0115.833 17.5H4.167A1.667 1.667 0 012.5 15.833V12.5M14.167 8.333L10 12.5m0 0L5.833 8.333M10 12.5V2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             Download Restored Image
-                        </a>
+                        </button>
                     </div>
                     {% else %}
                     <!-- Empty State -->
@@ -109,4 +115,34 @@
         </form>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if result %}
+<script>
+function downloadDecrypted() {
+    // Convert base64 to blob and trigger download
+    const b64 = "{{ result.image_base64 }}";
+    const mime = "{{ result.mime_type }}";
+    const filename = "{{ result.download_name }}";
+
+    const byteChars = atob(b64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mime });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+</script>
+{% endif %}
 {% endblock %}

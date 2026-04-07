@@ -12,12 +12,11 @@ Encryption flow:
 5. AES-CBC encrypt
 6. Split ciphertext: image_portion (original length) + overflow bytes
 7. Reconstruct encrypted PNG from image_portion
-8. Serialize key + IV + dimensions + overflow into key string
-
-The encrypted image looks like vivid RGB noise. Decryption with the correct
-key perfectly restores the original image.
+8. Upload encrypted PNG to Supabase Storage
+9. Serialize key + IV + dimensions + overflow + file_id into key string
 """
 
+import io
 from pathlib import Path
 
 from PIL import Image
@@ -25,8 +24,8 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
 
-from .key_manager import serialize_key
-from .file_handler import get_output_dir, save_bytes_to_file, get_media_url
+from .key_manager import serialize_key, generate_file_id
+from .supabase_storage import upload_file, get_signed_url, get_storage_path
 
 
 class DefaultEncryptionError(Exception):
@@ -39,17 +38,18 @@ def encrypt_image(image_path: Path) -> dict:
     Encrypt an image using AES-256-CBC on raw pixel data.
 
     The output is a valid PNG image containing encrypted pixel data
-    that appears as random RGB noise.
+    that appears as random RGB noise. The encrypted PNG is uploaded
+    to Supabase Storage.
 
     Args:
         image_path: Path to the source image file.
 
     Returns:
         Dictionary with:
-            - 'encrypted_image_path': Path to encrypted PNG
-            - 'encrypted_image_url': Media URL for the encrypted PNG
+            - 'signed_url': Signed URL for the encrypted PNG download/preview
             - 'key_string': Base64url key string for decryption
             - 'original_filename': Original file basename
+            - 'download_name': Suggested download filename
 
     Raises:
         DefaultEncryptionError: If encryption fails.
@@ -76,37 +76,40 @@ def encrypt_image(image_path: Path) -> dict:
         ciphertext = cipher.encrypt(padded_data)
 
         # Step 6: Split ciphertext
-        # image_portion: first 'original_length' bytes → becomes the visible encrypted image
-        # overflow: remaining bytes (1-16) → stored in key metadata for perfect reversal
         image_portion = ciphertext[:original_length]
         overflow = ciphertext[original_length:]
 
-        # Step 7: Reconstruct as RGB PNG
+        # Step 7: Reconstruct as RGB PNG in memory
         encrypted_img = Image.frombytes("RGB", (width, height), image_portion)
-        output_dir = get_output_dir()
+        buf = io.BytesIO()
+        encrypted_img.save(buf, format="PNG")
+        encrypted_bytes = buf.getvalue()
 
-        # Save as PNG (MUST be lossless — JPEG would destroy ciphertext)
-        from .file_handler import generate_secure_filename
-        output_filename = generate_secure_filename(".png")
-        output_path = output_dir / output_filename
-        encrypted_img.save(str(output_path), format="PNG")
+        # Step 8: Upload to Supabase Storage
+        file_id = generate_file_id()
+        storage_path = get_storage_path(file_id, ".png")
+        upload_file(encrypted_bytes, storage_path, content_type="image/png")
 
-        # Step 8: Serialize key metadata
+        # Generate signed URL for download/preview
+        signed_url = get_signed_url(storage_path)
+
+        # Step 9: Serialize key metadata (includes file_id for one-time tracking)
         key_data = {
-            "m": "default",             # mode identifier
-            "k": aes_key.hex(),          # AES-256 key (64 hex chars)
-            "iv": iv.hex(),              # CBC IV (32 hex chars)
-            "w": width,                  # original width
-            "h": height,                 # original height
-            "o": overflow.hex(),         # overflow bytes (2-32 hex chars)
+            "m": "default",
+            "k": aes_key.hex(),
+            "iv": iv.hex(),
+            "w": width,
+            "h": height,
+            "o": overflow.hex(),
+            "fid": file_id,
         }
         key_string = serialize_key(key_data)
 
         return {
-            "encrypted_image_path": output_path,
-            "encrypted_image_url": get_media_url(output_path),
+            "signed_url": signed_url,
             "key_string": key_string,
             "original_filename": image_path.name,
+            "download_name": f"encrypted_{image_path.stem}.png",
         }
 
     except Exception as e:
