@@ -4,3 +4,5 @@ SETUP.md
 *.png
 *.enc
 temp/
+*.sqlite3
+db.sqlite3
