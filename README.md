@@ -45,22 +45,6 @@ Encrypted files are stored in Supabase Storage; the cryptographic keys are **nev
 
 ---
 
-
-├── templates/
-│   ├── base.html
-│   ├── accounts/                    # login.html, signup.html, profile.html
-│   ├── core/                        # landing.html, dashboard.html
-│   └── crypto_tools/                # encrypt.html, decrypt.html
-│
-├── static/
-│   ├── css/main.css
-│   └── js/app.js
-│
-└── test_crypto.py                   # Round-trip validation tests
-```
-
----
-
 ## Getting Started
 
 ### Prerequisites
