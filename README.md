@@ -45,44 +45,7 @@ Encrypted files are stored in Supabase Storage; the cryptographic keys are **nev
 
 ---
 
-## Project Structure
 
-```
-Image-encryption-and-decryption/
-├── manage.py                        # Django management entry point
-├── requirements.txt                 # Python dependencies
-├── db.sqlite3                       # SQLite DB (sessions only)
-│
-├── config/
-│   ├── settings.py                  # Project settings (env-driven)
-│   ├── urls.py                      # Root URL dispatcher
-│   └── wsgi.py                      # WSGI entry point
-│
-├── apps/
-│   ├── accounts/                    # Authentication (Supabase-backed)
-│   │   ├── views.py                 # Signup, login, logout, profile
-│   │   ├── forms.py                 # LoginForm, SignupForm
-│   │   ├── decorators.py            # supabase_login_required
-│   │   ├── supabase_client.py       # Supabase client factory
-│   │   └── urls.py
-│   │
-│   ├── core/                        # Landing page & dashboard
-│   │   ├── views.py
-│   │   └── urls.py
-│   │
-│   └── crypto_tools/                # Encryption / decryption engine
-│       ├── views.py                 # encrypt_view, decrypt_view
-│       ├── forms.py                 # EncryptForm, DecryptForm
-│       ├── urls.py
-│       └── services/
-│           ├── default_encryptor.py # AES-256-CBC pixel encryption
-│           ├── default_decryptor.py # AES-256-CBC pixel decryption
-│           ├── full_encryptor.py    # Fernet full-file encryption
-│           ├── full_decryptor.py    # Fernet full-file decryption
-│           ├── key_manager.py       # Key serialisation / deserialisation
-│           ├── file_handler.py      # Upload validation & temp I/O
-│           └── supabase_storage.py  # Bucket upload, signed URLs, deletion
-│
 ├── templates/
 │   ├── base.html
 │   ├── accounts/                    # login.html, signup.html, profile.html
@@ -235,44 +198,7 @@ There is no public REST API. The application exposes the following URL routes:
 
 ## Contributing
 
-Contributions are welcome. Please follow the guidelines below.
-
-### Branch naming
-
-```
-feature/<short-description>
-fix/<short-description>
-docs/<short-description>
-refactor/<short-description>
-```
-
-### Workflow
-
-```bash
-# 1. Fork the repository and clone your fork
-git clone https://github.com/<your-username>/Image-encryption-and-decryption.git
-
-# 2. Create a feature branch from main
-git checkout -b feature/your-feature-name
-
-# 3. Make your changes; ensure existing tests still pass
-python test_crypto.py
-
-# 4. Commit with a clear message
-git commit -m "feat: add support for GIF encryption"
-
-# 5. Push and open a Pull Request against main
-git push origin feature/your-feature-name
-```
-
-### Pull Request checklist
-
-- [ ] `test_crypto.py` passes without errors.
-- [ ] New behaviour is covered by an update to `test_crypto.py` where applicable.
-- [ ] No secrets or credentials are committed.
-- [ ] Code follows the existing style (docstrings, type hints where present).
-
----
+Contributions are welcome.
 
 ## License
 
